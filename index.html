@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Rendimento Canoa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #e0f2fe; }
+    .container { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+    input, button { width: 100%; padding: 12px; margin: 8px 0; box-sizing: border-box; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 16px; }
+    button { background: #3b82f6; color: white; border: none; font-weight: bold; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
+    .accent { font-weight: bold; color: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 style="color:#1d4ed8; margin-top:0;">Rendimento Canoa</h2>
+    <input type="text" id="atleta" placeholder="Atleta">
+    <div style="display:flex; gap:8px;">
+      <input type="number" id="metri" placeholder="Metri">
+      <input type="number" id="colpi" placeholder="Numero Colpi">
+    </div>
+    <div style="display:flex; gap:8px;">
+      <input type="number" id="min" placeholder="Minuti">
+      <input type="number" id="sec" placeholder="Secondi">
+      <input type="number" id="dec" placeholder="Decimi">
+    </div>
+    <button onclick="calcola()">Calcola Prestazione</button>
+    <h3 style="margin-bottom:8px; margin-top:16px;">RISULTATI</h3>
+    <table>
+      <tr><td>Frequenza (colpi/min)</td><td id="r_freq" class="accent">0.0</td></tr>
+      <tr><td>Kgm/colpo</td><td id="r_kgm" class="accent">0.00</td></tr>
+      <tr><td>metri/colpo</td><td id="r_mt" class="accent">0.00</td></tr>
+      <tr><td>Passo a 1000m</td><td id="r_1000" class="accent">0:00.0</td></tr>
+      <tr><td>Proiezione 500m</td><td id="r_500" class="accent">0:00.0</td></tr>
+      <tr><td>V (Km/h)</td><td id="r_kmh" class="accent">0.0</td></tr>
+      <tr><td>P (w) - Potenza</td><td id="r_pw" class="accent">0.00 W</td></tr>
+    </table>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
+    function calcola() {
+      let metri = parseFloat(document.getElementById('metri').value) || 0;
+      let min = parseFloat(document.getElementById('min').value) || 0;
+      let sec = parseFloat(document.getElementById('sec').value) || 0;
+      let dec = parseFloat(document.getElementById('dec').value) || 0;
+      let colpi = parseFloat(document.getElementById('colpi').value) || 0;
+      let tempo = (min * 60) + sec + (dec / 10);
+      if (metri <= 0 || tempo <= 0) return;
+      let mSec = metri / tempo;
+      let vKmh = mSec * 3.6;
+      let freq = (colpi / tempo) * 60;
+      let pw = 5.59 * Math.pow(mSec, 2.65);
+      let lKgm = (pw * tempo) / 9.8;
+      let kgmC = colpi > 0 ? lKgm / colpi : 0;
+      let mtC = colpi > 0 ? metri / colpi : 0;
+      let t500 = (500 / metri) * tempo;
+      let t1000 = (1000 / metri) * tempo;
+      function fmt(t) {
+        let mn = Math.floor(t / 60); let sc = Math.floor(t % 60); let dc = Math.round((t % 1) * 10);
+        if (dc >= 10) { sc += 1; dc = 0; } if (sc >= 60) { mn += 1; sc = 0; }
+        return mn + ":" + (sc < 10 ? "0" + sc : sc) + "." + dc;
+      }
+      document.getElementById('r_freq').innerText = freq.toFixed(1);
+      document.getElementById('r_kgm').innerText = kgmC.toFixed(2);
+      document.getElementById('r_mt').innerText = mtC.toFixed(2);
+      document.getElementById('r_1000').innerText = fmt(t1000);
+      document.getElementById('r_500').innerText = fmt(t500);
+      document.getElementById('r_kmh').innerText = vKmh.toFixed(1);
+      document.getElementById('r_pw').innerText = pw.toFixed(2) + " W";
+    }
+  </script>
+</body>
+</html>
